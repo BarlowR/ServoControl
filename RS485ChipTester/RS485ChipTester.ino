@@ -1,27 +1,42 @@
+unsigned long ts = 0;
+
+
+
 void setup() {
   // put your setup code here, to run once:
   Serial1.begin(115200);
 }
 
 void loop() {
-  unsigned char com[4] = {0xDA,0x1F,0x00,0x00};
+  short int pos = 1000;
+  
+  unsigned char com[4] = {0x76,0x01,highByte(pos),lowByte(pos)};
   unsigned short int ck16 = return_CRC(com);
-  Serial.print(highByte(ck16), HEX);
-  Serial.print(lowByte(ck16), HEX);
+  byte hb = highByte(ck16), lb = lowByte(ck16);
   Serial.println("");
 
 
-  unsigned char ck16c[6] = {com, highByte(ck16), lowByte(ck16)};
+  unsigned char ck16c[6] = {com[0], com[1], com[2], com[3], hb, lb};
 
   Serial1.write(ck16c, 6);
 
   byte rsp[6];
 
   char i = 0;
+
+  ts = millis();
+  while(!Serial1.available()&&(millis()-ts < 1000)){}
   while(Serial1.available()){
     rsp[i] = Serial1.read();
     i++;
   }
+
+  for (int i = 0; i < 6; i++){
+    Serial.print(ck16c[i], HEX);
+    Serial.print(" ");
+
+  }
+  Serial.println();
   
   for (int i = 0; i < 6; i++){
     Serial.print(rsp[i], HEX);
@@ -29,9 +44,8 @@ void loop() {
 
   }
   Serial.println();
-  delay(200);
   
-
+  delay(10);
   
 }
 
