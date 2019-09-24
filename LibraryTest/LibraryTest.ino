@@ -8,7 +8,14 @@ void setup() {
 }
 
 void loop() {
-  servoBs.getAd();  
-  Serial.println();
-  delay(100);
+  int pos1 = (((millis()/2)%3600)-1800);
+  int pos2 = ((millis())%3600)-1800;
+  unsigned long maxDelay = micros();
+  servoBs.setSPos(2, -1900);
+  servoBs.setSPos(1, -1900);
+  servoBs.setSPos(2, -1900);
+  servoBs.setSPos(1, -1900);
+  servoBs.setSPos(2, -1900);
+  servoBs.setSPos(1, -1900);
+  Serial.println(micros()-maxDelay);
 }

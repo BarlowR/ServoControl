@@ -13,7 +13,17 @@ void VolzServo::setPos(byte servo, short pos) //set absolute servo position. Val
   sendCmd(ans, cmd);
   if (ans != 0)
   {
-    if (ans[0] != 0x6D) errorReport("Improper response to set position");
+    if (ans[0] != 0x56)
+    {
+      errorReport("Improper response to set position");
+      String erMsg = "Response: ";
+      for (byte j = 0 ; j < 6; j++)
+      {
+        erMsg.concat(String(ans[j], HEX).toUpperCase());
+        erMsg.concat(" ");
+      }
+      errorReport(erMsg);
+    }
   }
   else
   {
@@ -21,6 +31,12 @@ void VolzServo::setPos(byte servo, short pos) //set absolute servo position. Val
   }
 }
 
+void VolzServo::setSPos(byte servo, short pos) //set absolute servo position. Valid range is +- 1934.
+{
+  byte cmd[4] = {0x76, servo, highByte(pos), lowByte(pos)};
+  byte ans[6];
+  sendCmd(ans, cmd, 0, true);
+}
 
 byte VolzServo::getAd() // Get the address of the servo currently attached to the RS485 bus. Only attach one servo at a time. Returns the servo address.
 { 
@@ -57,7 +73,7 @@ bool VolzServo::setAd(byte curAd, byte setAd) // Set the address of the servo at
 }
 
 
-void VolzServo::sendCmd(unsigned char * ans, unsigned char * cmd, short timeout = 10) // Send a command to the RS485 bus. Returns the response via ans pointer.
+void VolzServo::sendCmd(unsigned char * ans, unsigned char * cmd, short timeout = 6, bool suppressOutput = false) // Send a command to the RS485 bus. Returns the response via ans pointer.
 { 
   //Assemble and write command to serial bus
   short int crc = return_CRC(cmd); 
@@ -67,18 +83,48 @@ void VolzServo::sendCmd(unsigned char * ans, unsigned char * cmd, short timeout 
  
   // Wait for response and alert if timeout
   unsigned long ts = millis(); 
-  while (!servoBus.available() && (millis() - ts < timeout)) {} 
-  if (millis() - ts >= timeout) alert("Response Timeout"); 
-  
-  //Return response, throw error if no response
-  byte i = 0;
-  while (servoBus.available() && i < 6) {
-    ans[i] = servoBus.read();
-    i++;
-  }
-  if (i == 0) 
+  byte rd = 0;
+  while (rd != 0x56 && (millis() - ts < timeout/2)) 
   {
-    String erMsg = "Did not receive response from cmd: ";
+    rd = servoBus.read();
+  } 
+  if (rd == 0x56)
+  {
+    ans[0] = rd;
+    //Wait for 6 bytes, throw error if timeout
+    byte i = 1;
+  
+    ts = millis(); 
+    while (i < 6 && (millis() - ts < timeout/2)) {
+      if (servoBus.available()){
+        ans[i] = servoBus.read();
+        //Serial.println(ans[i], HEX);
+        i++;
+      }
+    }
+    if (i < 6 && !suppressOutput) 
+    {
+      String erMsg = "Did not receive full response from cmd: ";
+      for (byte j = 0 ; j < 6; j++)
+      {
+        erMsg.concat(String(cmdcrc[j], HEX).toUpperCase());
+        erMsg.concat(" ");
+      }
+      errorReport(erMsg);
+      
+      erMsg = "Response was:";
+      for (byte j = 0 ; j < 6; j++)
+      {
+        erMsg.concat(String(ans[j], HEX).toUpperCase());
+        erMsg.concat(" ");
+      }
+      errorReport(erMsg);
+    }
+  }
+  else if(!suppressOutput)
+  {
+    errorReport("Response Timeout"); 
+    String erMsg = "cmd: ";
     for (byte j = 0 ; j < 6; j++)
     {
       erMsg.concat(String(cmdcrc[j], HEX).toUpperCase());
