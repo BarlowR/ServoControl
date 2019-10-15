@@ -14,7 +14,7 @@
 
 #define BUS     Serial1         //RS485 Hardware serial port
 
-#define WRITE_INTERVAL 10000    //Interval at which commands are written to the servos and ESC & timer
+#define WRITE_INTERVAL 20000    //Interval at which commands are written to the servos and ESC & timer
 IntervalTimer busWrite;
 
 
@@ -40,7 +40,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   //check for usb serial connection (sends a message and waits for a response). CRITICAL: COMMENT OUT BEFORE FLIGHT
-  //SerialConnectionCheck();                   
+  SerialConnectionCheck();                   
 }
 
 void loop() {
@@ -51,6 +51,8 @@ void loop() {
 
 
 void writeBus(){
+
+  
 
   int pos = 0;                  //placeholder for PWM command calculations
   
@@ -81,10 +83,10 @@ void writeBus(){
 
 
     //for all servos except for the ESC, write from the channels array
-    for (byte i = 0; i<=0x06; i++){
+    for (byte i = 0; i<0x07; i++){
       if (i != 0x02){
           pos = channels[i] -1000;
-          servos.setSPos(i, pos);
+          servos.setPos(i, pos);
           if (usb_connected){
             serialMessage.concat(i);
             serialMessage.concat(": ");
@@ -137,3 +139,8 @@ bool SerialConnectionCheck(){         //send message to USB serial port and wait
     digitalWrite(LED_BUILTIN, HIGH);
   }
 }
+
+
+void serialEvent1() {
+  //Serial.println(Serial1.read(), HEX);
+ }
