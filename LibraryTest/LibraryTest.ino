@@ -1,21 +1,28 @@
 #include "VolzLib.h"
+#include "GraupnerESCLib.h"
+VolzServo servoBus;
+GraupnerESC graupnerESC;
 
-VolzServo servoBs;
+unsigned long bgn;
 
 void setup() {
   // put your setup code here, to run once:
+  Serial1.end();
   Serial.begin(9600);
+  
+
 }
 
 void loop() {
-  int pos1 = (((millis()/2)%3600)-1800);
-  int pos2 = ((millis())%3600)-1800;
-  unsigned long maxDelay = micros();
-  servoBs.setSPos(2, -1900);
-  servoBs.setSPos(1, -1900);
-  servoBs.setSPos(2, -1900);
-  servoBs.setSPos(1, -1900);
-  servoBs.setSPos(2, -1900);
-  servoBs.setSPos(1, -1900);
-  Serial.println(micros()-maxDelay);
+  bgn = millis();
+  Serial1.begin(19200);
+  graupnerESC.setPWM(0x02, 1520);
+  Serial1.end();
+  Serial1.begin(115200);
+  servoBus.setSPos(0x05, millis()%1000);
+  //Serial1.end();
+  Serial.print(millis()%1000);
+  Serial.print(" ");
+  Serial.println(millis()-bgn);
+  delay(10);
 }

@@ -1,6 +1,6 @@
 #ifndef VolzLib_h
 #define VolzLib_h
-#define servoBus Serial1
+#define RS485bus Serial1
 #define usbSerial Serial
 
 #include "Arduino.h"
