@@ -2,7 +2,7 @@
 #include "VolzLib.h"
 
 VolzServo::VolzServo(){
-servoBus.begin(115200);
+  //RS485bus.begin(115200);
 }
 
 
@@ -79,14 +79,14 @@ void VolzServo::sendCmd(unsigned char * ans, unsigned char * cmd, short timeout 
   short int crc = return_CRC(cmd); 
   byte lb = lowByte(crc), hb = highByte(crc); 
   byte cmdcrc[6] = {cmd[0], cmd[1], cmd[2], cmd[3], hb, lb}; 
-  servoBus.write(cmdcrc, 6); //write command to serial bus
+  RS485bus.write(cmdcrc, 6); //write command to serial bus
  
   // Wait for response and alert if timeout
   unsigned long ts = millis(); 
   byte rd = 0;
   while (rd != 0x56 && (millis() - ts < timeout/2)) 
   {
-    rd = servoBus.read();
+    rd = RS485bus.read();
   } 
   if (rd == 0x56)
   {
@@ -96,8 +96,8 @@ void VolzServo::sendCmd(unsigned char * ans, unsigned char * cmd, short timeout 
   
     ts = millis(); 
     while (i < 6 && (millis() - ts < timeout/2)) {
-      if (servoBus.available()){
-        ans[i] = servoBus.read();
+      if (RS485bus.available()){
+        ans[i] = RS485bus.read();
         //Serial.println(ans[i], HEX);
         i++;
       }
