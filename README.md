@@ -1,2 +1,2 @@
 # ServoControl
- A translator module to talk between the receiver (sbus) and the servos (rs485)
+ A translator module to talk between sbus protocol and rs485
